@@ -27,8 +27,7 @@
         
 
         this.lights = [];
-        if (this.renderer == null)
-            this.renderer = ThreeTest.createRenderer(this.content);
+        this.renderer = ThreeTest.createRenderer(this.content);
         this.scene = ThreeTest.createScene();
 
         this.lights = ThreeTest.getLights();
@@ -37,24 +36,24 @@
         }
 
         let texture = await ThreeTest.getTexture("img/212.jpg");
-        this.scene.add(ThreeTest.getBoxes(texture, 50));
-        let otherBoxes = ThreeTest.getBoxes(texture, 50);
+        this.scene.add(ThreeTest.getBoxes(texture, 200));
+        let otherBoxes = ThreeTest.getBoxes(texture, 200);
         otherBoxes.rotateZ(Math.PI);
         this.scene.add(otherBoxes);
 
-        let ground = await ThreeTest.getGround();
-        this.scene.add(ground);
+        //let ground = await ThreeTest.getGround();
+        //this.scene.add(ground);
 
         this.camera = new THREE.PerspectiveCamera(75, 1, 0.01, 1000);
-        this.camera.position.set(0, 0, 25);
-        this.animate(300);
+        this.camera.position.set(0, 0, -7.5);
+        this.startAnimate();
     }
     private static createRenderer(parent: HTMLElement) {
         let result = new THREE.WebGLRenderer({
             antialias: true,
         });
-        result.shadowMapType = THREE.PCFSoftShadowMap;
-        result.shadowMapEnabled = true;
+        result.shadowMap.type = THREE.PCFSoftShadowMap;
+        result.shadowMap.enabled = true;
         while (parent.children.length > 0) {
             parent.removeChild(parent.firstChild);
         }
@@ -67,15 +66,18 @@
     }
     private static getLights(): THREE.SpotLight[] {
         let result = [];
-        let lightA = new THREE.SpotLight(0xff22ff, 2, 25);
-        lightA.position.set(2, 2, 0);
-        result.push(lightA);
-        let lightB = new THREE.SpotLight(0x22ffff, 2, 25);
-        lightB.position.set(-2, -2, 0);
-        result.push(lightB);
-        let lightC = new THREE.SpotLight(0xffff22, 2, 25);
-        lightC.position.set(0, 0, 2);
-        result.push(lightC);
+        let numLights = 12;
+        for (let i = 0; i < numLights; i++) {
+            let iPi = i / numLights * 2 * Math.PI;
+            let color = new THREE.Vector3(
+                0.5 + 0.5 * Math.sin(iPi),
+                0.5 + 0.5 * Math.cos(iPi),
+                1);
+            let light = new THREE.SpotLight(ThreeTest.getHexColor(color), 6 / numLights, 25);
+            //let light = new THREE.SpotLight(0xffffff, 2, 25);
+            light.position.set(4 * Math.sin(iPi), 7 * Math.cos(iPi), 0);
+            result.push(light);
+        }
 
         return result;
     }
@@ -101,8 +103,10 @@
         return cube;
     }
     private static async getGround(): Promise<THREE.Object3D> {
-        let geo = new THREE.PlaneGeometry(5, 50, 5, 50);
+        let geo = new THREE.PlaneGeometry(5, 200, 5, 50);
         let tex = await ThreeTest.getTexture("img/212.jpg");
+        tex.repeat.set(5, 200);
+        tex.wrapS = tex.wrapT = THREE.MirroredRepeatWrapping;
         let mat = new THREE.MeshPhongMaterial({
             map: tex,
         });
@@ -113,31 +117,52 @@
         return mesh;
     }
 
-    private animate(n: number): void {
-        if (!this.run)
-            return;
-        if (n < 0) {
+    private startAnimate() {
+        let t = performance.now();
+        this.animate(t, t);
+    }
+    private animate(
+        startTime: number,
+        currentTIme: number
+    ): void {
+        if (this.time(currentTIme - startTime)) {
+            this.renderer.render(this.scene, this.camera);
+            requestAnimationFrame(c => this.animate(startTime, c));
+        }
+        else
             this.loop();
-            return;
-        }
-        let step = 0.2;
-        let zStep = 0.3 * step;
-        //this.camera.position.z += zStep;
-        for (let light of this.lights) {
-            light.position.z += zStep;
-            
-        }
-
-        this.renderer.render(this.scene, this.camera);
-        requestAnimationFrame(c => this.animate(n - step));
     }
 
+    private time(currentTime: number): boolean {
+        let endTime = 10000;
+        if (currentTime > endTime) {
+            return false;
+        }
+        let cameraZStart = 250;
+        let cameraEnd = 0;
+        let cameraPos = ThreeTest.polate(cameraZStart, cameraEnd, currentTime / endTime);
+        this.camera.position.z = cameraPos;
+        for (let light of this.lights) {
+            light.position.z = cameraPos;
+        }
 
+        return true;
+    }
+
+    private static polate(start: number, stop: number, normalizedPos: number): number{
+        return (start * (1-normalizedPos)) + (stop * normalizedPos);
+    }
     private static getTexture(url: string): Promise<THREE.Texture> {
         return new Promise<THREE.Texture>((resolve, reject) => {
             let loader = new THREE.TextureLoader();
             loader.load(url, resolve);
         });
+    }
+    private static getHexColor(normalizedRgb: THREE.Vector3): number {
+        let r = normalizedRgb.x * 255;
+        let g = normalizedRgb.y * 255;
+        let b = normalizedRgb.z * 255;
+        return r * (2 << 16) + g * (2 << 8) + b;
     }
 }
 

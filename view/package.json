@@ -3,6 +3,7 @@
   "name": "asp.net",
   "private": true,
   "devDependencies": {
-    "@types/three": "^0.83.4"
+    "@types/three": "^0.83.4",
+    "three": "^0.84.0"
   }
 }
