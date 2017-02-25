@@ -1,11 +1,11 @@
 ﻿class ThreeTest {
-    content: HTMLElement;
-    numTests = 1000;
-
+    readonly content: HTMLElement;
+    run = true;
+    numTests = 0;
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
-    renderer: THREE.WebGLRenderer;
-
+    renderer: THREE.WebGLRenderer = null;
+    lights: THREE.SpotLight[] = [];
 
     constructor(elem: HTMLElement) {
         this.content = elem;
@@ -15,62 +15,119 @@
         let result = new THREE.WebGLRenderer({
             antialias: true,
         });
-
+        while (parent.children.length > 0) {
+            parent.removeChild(parent.firstChild);
+        }
         result.setSize(parent.clientWidth, parent.clientHeight);
         parent.appendChild(result.domElement);
         return result;
     }
-
-    public loop(): void {
-        this.numTests--;
-        if (this.numTests < 0)
-            return;
-        while (this.content.children.length > 0) {
-            this.content.removeChild(this.content.firstChild);
+    public start() {
+        if (!this.run) {
+            this.run = true;
+            this.loop();
         }
-            
-        this.renderer = ThreeTest.createRenderer(this.content);
+    }
+    public stop() {
+        this.run = false;
+        console.debug("Stopped");
+    }
+
+    public async loop(): Promise<void> {
+        this.numTests++;
+        
+
+        this.lights = [];
+        if (this.renderer == null)
+            this.renderer = ThreeTest.createRenderer(this.content);
         this.scene = ThreeTest.createScene();
-        ThreeTest.addLights(this.scene);
-        ThreeTest.populate(this.scene);
+
+        this.lights = ThreeTest.getLights();
+        for (let light of this.lights) {
+            this.scene.add(light);
+        }
+
+        let texture = await ThreeTest.getTexture("img/256.jpg");
+        this.scene.add(ThreeTest.getBoxes(texture, 50));
+        let otherBoxes = ThreeTest.getBoxes(texture, 50);
+        otherBoxes.rotateZ(Math.PI);
+        this.scene.add(otherBoxes);
+
         this.camera = new THREE.PerspectiveCamera(75, 1, 0.01, 1000);
-        this.camera.position.set(0, 0, 5);
-        this.animate(100);
+        this.camera.position.set(0, 0, -7.5);
+        this.animate(300);
     }
 
     private static createScene(): THREE.Scene {
         return new THREE.Scene();
     }
-    private static addLights(scene: THREE.Scene): void {
-        scene.add(new THREE.AmbientLight(0x669966, 2));
+    private static getLights(): THREE.SpotLight[] {
+        let result = [];
+        let lightA = new THREE.SpotLight(0xff22ff, 2, 25);
+        lightA.position.set(2, 2, 0);
+        result.push(lightA);
+        let lightB = new THREE.SpotLight(0x22ffff, 2, 25);
+        lightB.position.set(-2, -2, 0);
+        result.push(lightB);
+        let lightC = new THREE.SpotLight(0xffff22, 2, 25);
+        lightC.position.set(0, 0, 2);
+        result.push(lightC);
+
+        return result;
     }
-    private static populate(scene: THREE.Scene): void {
-        for (let i = 0; i < 50; i++) {
-            scene.add(ThreeTest.getBox(i));
+    private static getBoxes(texture: THREE.Texture, numBoxes: number): THREE.Group {
+        let result = new THREE.Group();
+        for (let i = 0; i < numBoxes; i++) {
+            result.add(ThreeTest.getBox(i, texture));
         }
+        return result;
     }
-    private static getBox(boxNum: number): THREE.Mesh {
+    private static getBox(boxNum: number, texture: THREE.Texture): THREE.Mesh {
         let geo = new THREE.BoxGeometry(1, 1, 1);
-        let mat = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+        let tex = texture.clone();
+        tex.wrapS = tex.wrapT = THREE.MirroredRepeatWrapping;
+        tex.repeat.set(boxNum / 10 + 1, boxNum / 10 + 1);
+        tex.needsUpdate = true;
+        let mat = new THREE.MeshPhongMaterial({
+            map: tex,
+        });
         let cube = new THREE.Mesh(geo, mat);
         cube.position.set(Math.sin(boxNum / 3) * 5, Math.cos(boxNum / 3) * 5, boxNum);
         return cube;
     }
 
     private animate(n: number): void {
+        if (!this.run)
+            return;
         if (n < 0) {
             this.loop();
             return;
         }
-        this.camera.position.z += 0.3;
+        let step = 0.8;
+        let zStep = 0.3 * step;
+        this.camera.position.z += zStep;
+        for (let light of this.lights) {
+            light.position.z += zStep;
+            
+        }
+
         this.renderer.render(this.scene, this.camera);
-        requestAnimationFrame(c => this.animate(n - 1));
+        requestAnimationFrame(c => this.animate(n - step));
     }
 
+
+    private static getTexture(url: string): Promise<THREE.Texture> {
+        return new Promise<THREE.Texture>((resolve, reject) => {
+            let loader = new THREE.TextureLoader();
+            loader.load(url, resolve);
+        });
+    }
 }
+
 
 window.onload = () => {
     var el = document.getElementById('content');
     var threeTest = new ThreeTest(el);
     threeTest.loop();
+    window["threeTest"] = threeTest;
 };

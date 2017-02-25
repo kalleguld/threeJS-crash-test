@@ -23,6 +23,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app.css" />
+    <Content Include="img\212.jpg" />
+    <Content Include="img\256.jpg" />
     <Content Include="index.html" />
     <Content Include="web.config" />
   </ItemGroup>
@@ -50,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
+    <Content Include="tsconfig.json" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
