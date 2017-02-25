@@ -11,17 +11,6 @@
         this.content = elem;
     }
 
-    private static createRenderer(parent: HTMLElement) {
-        let result = new THREE.WebGLRenderer({
-            antialias: true,
-        });
-        while (parent.children.length > 0) {
-            parent.removeChild(parent.firstChild);
-        }
-        result.setSize(parent.clientWidth, parent.clientHeight);
-        parent.appendChild(result.domElement);
-        return result;
-    }
     public start() {
         if (!this.run) {
             this.run = true;
@@ -47,17 +36,32 @@
             this.scene.add(light);
         }
 
-        let texture = await ThreeTest.getTexture("img/256.jpg");
+        let texture = await ThreeTest.getTexture("img/212.jpg");
         this.scene.add(ThreeTest.getBoxes(texture, 50));
         let otherBoxes = ThreeTest.getBoxes(texture, 50);
         otherBoxes.rotateZ(Math.PI);
         this.scene.add(otherBoxes);
 
+        let ground = await ThreeTest.getGround();
+        this.scene.add(ground);
+
         this.camera = new THREE.PerspectiveCamera(75, 1, 0.01, 1000);
-        this.camera.position.set(0, 0, -7.5);
+        this.camera.position.set(0, 0, 25);
         this.animate(300);
     }
-
+    private static createRenderer(parent: HTMLElement) {
+        let result = new THREE.WebGLRenderer({
+            antialias: true,
+        });
+        result.shadowMapType = THREE.PCFSoftShadowMap;
+        result.shadowMapEnabled = true;
+        while (parent.children.length > 0) {
+            parent.removeChild(parent.firstChild);
+        }
+        result.setSize(parent.clientWidth, parent.clientHeight);
+        parent.appendChild(result.domElement);
+        return result;
+    }
     private static createScene(): THREE.Scene {
         return new THREE.Scene();
     }
@@ -92,8 +96,21 @@
             map: tex,
         });
         let cube = new THREE.Mesh(geo, mat);
+        cube.castShadow = cube.receiveShadow = true;
         cube.position.set(Math.sin(boxNum / 3) * 5, Math.cos(boxNum / 3) * 5, boxNum);
         return cube;
+    }
+    private static async getGround(): Promise<THREE.Object3D> {
+        let geo = new THREE.PlaneGeometry(5, 50, 5, 50);
+        let tex = await ThreeTest.getTexture("img/212.jpg");
+        let mat = new THREE.MeshPhongMaterial({
+            map: tex,
+        });
+        let mesh = new THREE.Mesh(geo, mat);
+        mesh.receiveShadow = true;
+        mesh.position.set(0, -6, 25);
+        mesh.rotateX(Math.PI / -2);
+        return mesh;
     }
 
     private animate(n: number): void {
@@ -103,9 +120,9 @@
             this.loop();
             return;
         }
-        let step = 0.8;
+        let step = 0.2;
         let zStep = 0.3 * step;
-        this.camera.position.z += zStep;
+        //this.camera.position.z += zStep;
         for (let light of this.lights) {
             light.position.z += zStep;
             

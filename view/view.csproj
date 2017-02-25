@@ -30,29 +30,10 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
-    <TypeScriptCompile Include="Scripts\typings\es6-promise\es6-promise.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\geometry-dom\geometry-dom.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\detector.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-canvasrenderer.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-copyshader.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-css3drenderer.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-editorcontrols.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-effectcomposer.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-FirstPersonControls.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-maskpass.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-orbitcontrols.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-orthographictrackballcontrols.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-projector.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-renderpass.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-shaderpass.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-trackballcontrols.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three-transformcontrols.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\threejs\three.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\webvr-api\webvr-api.d.ts" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="packages.config" />
     <Content Include="tsconfig.json" />
+    <Content Include="package.json" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

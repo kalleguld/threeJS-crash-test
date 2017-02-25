@@ -41,17 +41,6 @@ var ThreeTest = (function () {
         this.lights = [];
         this.content = elem;
     }
-    ThreeTest.createRenderer = function (parent) {
-        var result = new THREE.WebGLRenderer({
-            antialias: true,
-        });
-        while (parent.children.length > 0) {
-            parent.removeChild(parent.firstChild);
-        }
-        result.setSize(parent.clientWidth, parent.clientHeight);
-        parent.appendChild(result.domElement);
-        return result;
-    };
     ThreeTest.prototype.start = function () {
         if (!this.run) {
             this.run = true;
@@ -64,7 +53,7 @@ var ThreeTest = (function () {
     };
     ThreeTest.prototype.loop = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var _i, _a, light, texture, otherBoxes;
+            var _i, _a, light, texture, otherBoxes, ground;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -78,20 +67,37 @@ var ThreeTest = (function () {
                             light = _a[_i];
                             this.scene.add(light);
                         }
-                        return [4 /*yield*/, ThreeTest.getTexture("img/256.jpg")];
+                        return [4 /*yield*/, ThreeTest.getTexture("img/212.jpg")];
                     case 1:
                         texture = _b.sent();
                         this.scene.add(ThreeTest.getBoxes(texture, 50));
                         otherBoxes = ThreeTest.getBoxes(texture, 50);
                         otherBoxes.rotateZ(Math.PI);
                         this.scene.add(otherBoxes);
+                        return [4 /*yield*/, ThreeTest.getGround()];
+                    case 2:
+                        ground = _b.sent();
+                        this.scene.add(ground);
                         this.camera = new THREE.PerspectiveCamera(75, 1, 0.01, 1000);
-                        this.camera.position.set(0, 0, -7.5);
+                        this.camera.position.set(0, 0, 25);
                         this.animate(300);
                         return [2 /*return*/];
                 }
             });
         });
+    };
+    ThreeTest.createRenderer = function (parent) {
+        var result = new THREE.WebGLRenderer({
+            antialias: true,
+        });
+        result.shadowMapType = THREE.PCFSoftShadowMap;
+        result.shadowMapEnabled = true;
+        while (parent.children.length > 0) {
+            parent.removeChild(parent.firstChild);
+        }
+        result.setSize(parent.clientWidth, parent.clientHeight);
+        parent.appendChild(result.domElement);
+        return result;
     };
     ThreeTest.createScene = function () {
         return new THREE.Scene();
@@ -126,8 +132,31 @@ var ThreeTest = (function () {
             map: tex,
         });
         var cube = new THREE.Mesh(geo, mat);
+        cube.castShadow = cube.receiveShadow = true;
         cube.position.set(Math.sin(boxNum / 3) * 5, Math.cos(boxNum / 3) * 5, boxNum);
         return cube;
+    };
+    ThreeTest.getGround = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var geo, tex, mat, mesh;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        geo = new THREE.PlaneGeometry(5, 50, 5, 50);
+                        return [4 /*yield*/, ThreeTest.getTexture("img/212.jpg")];
+                    case 1:
+                        tex = _a.sent();
+                        mat = new THREE.MeshPhongMaterial({
+                            map: tex,
+                        });
+                        mesh = new THREE.Mesh(geo, mat);
+                        mesh.receiveShadow = true;
+                        mesh.position.set(0, -6, 25);
+                        mesh.rotateX(Math.PI / -2);
+                        return [2 /*return*/, mesh];
+                }
+            });
+        });
     };
     ThreeTest.prototype.animate = function (n) {
         var _this = this;
@@ -137,9 +166,9 @@ var ThreeTest = (function () {
             this.loop();
             return;
         }
-        var step = 0.8;
+        var step = 0.2;
         var zStep = 0.3 * step;
-        this.camera.position.z += zStep;
+        //this.camera.position.z += zStep;
         for (var _i = 0, _a = this.lights; _i < _a.length; _i++) {
             var light = _a[_i];
             light.position.z += zStep;
