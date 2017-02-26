@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 class ThreeTest {
     constructor(elem) {
-        this.run = true;
         this.numTests = 0;
         this.renderer = null;
         this.lights = [];
@@ -27,22 +26,11 @@ class ThreeTest {
         ];
         this.content = elem;
     }
-    start() {
-        if (!this.run) {
-            this.run = true;
-            this.loop();
-        }
-    }
-    stop() {
-        this.run = false;
-        console.debug("Stopped");
-    }
     loop() {
         return __awaiter(this, void 0, void 0, function* () {
             this.numTests++;
-            this.lights = [];
             this.renderer = ThreeTest.createRenderer(this.content);
-            this.scene = ThreeTest.createScene();
+            this.scene = new THREE.Scene();
             this.lights = ThreeTest.getLights();
             for (let light of this.lights) {
                 this.scene.add(light);
@@ -54,10 +42,13 @@ class ThreeTest {
             //otherBoxes.rotateZ(Math.PI);
             //this.scene.add(otherBoxes);
             this.textures = yield ThreeTest.getTextures(this.textureUrls);
+            this.boxCircle = ThreeTest.getBoxCircle(this.textures, 25, 5);
+            this.scene.add(this.boxCircle);
             let ground = yield ThreeTest.getGround();
             this.scene.add(ground);
             this.camera = new THREE.PerspectiveCamera(75, 1, 0.01, 1000);
             this.camera.position.set(0, 2, 10);
+            console.debug(this.scene.toJSON());
             this.startAnimate();
         });
     }
@@ -74,12 +65,9 @@ class ThreeTest {
         parent.appendChild(result.domElement);
         return result;
     }
-    static createScene() {
-        return new THREE.Scene();
-    }
     static getLights() {
         let result = [];
-        let numLights = 45;
+        let numLights = 5;
         for (let i = 0; i < numLights; i++) {
             let iPi = i / numLights * 2 * Math.PI;
             let color = new THREE.Vector3(0.5 + 0.5 * Math.sin(iPi), 0.5 + 0.5 * Math.cos(iPi), 1);
@@ -104,6 +92,7 @@ class ThreeTest {
             cube.castShadow = true;
             let iPi = i / numBoxes * Math.PI * 2;
             cube.position.set(radius * Math.sin(iPi), 0.5, radius * Math.cos(iPi));
+            cube.rotateY(iPi);
             result.add(cube);
         }
         return result;
@@ -158,13 +147,15 @@ class ThreeTest {
             this.loop();
     }
     time(currentTime) {
-        let lifetime = 20000;
-        if (currentTime > lifetime)
-            return false;
-        this.scene.remove(this.boxCircle);
-        let boxCircle = ThreeTest.getBoxCircle(this.textures, ThreeTest.polate(5, 35, currentTime / lifetime), 5);
-        this.boxCircle = boxCircle;
-        this.scene.add(boxCircle);
+        let lifetime = 1000;
+        //if (currentTime > lifetime)
+        //    return false;
+        //this.scene.remove(this.boxCircle);
+        //let boxCircle = ThreeTest.getBoxCircle(this.textures,
+        //    ThreeTest.polate(5, 35, currentTime / lifetime),
+        //    5);
+        //this.boxCircle = boxCircle;
+        //this.scene.add(boxCircle);
         let i = 0;
         for (let box of this.boxCircle.children) {
             box.position.y = Math.abs(Math.sin(i / 4 + (currentTime / 200)));

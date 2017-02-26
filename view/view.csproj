@@ -23,8 +23,20 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app.css" />
+    <Content Include="img\1.jpg" />
+    <Content Include="img\1.png" />
+    <Content Include="img\2.jpg" />
+    <Content Include="img\2.png" />
     <Content Include="img\212.jpg" />
     <Content Include="img\256.jpg" />
+    <Content Include="img\3.jpg" />
+    <Content Include="img\3.png" />
+    <Content Include="img\4.jpg" />
+    <Content Include="img\4.png" />
+    <Content Include="img\5.jpg" />
+    <Content Include="img\5.png" />
+    <Content Include="img\6.jpg" />
+    <Content Include="img\7.jpg" />
     <Content Include="index.html" />
     <Content Include="web.config" />
   </ItemGroup>

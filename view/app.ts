@@ -1,6 +1,5 @@
 ﻿class ThreeTest {
     readonly content: HTMLElement;
-    run = true;
     numTests = 0;
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
@@ -26,25 +25,13 @@
     constructor(elem: HTMLElement) {
         this.content = elem;
     }
-
-    public start() {
-        if (!this.run) {
-            this.run = true;
-            this.loop();
-        }
-    }
-    public stop() {
-        this.run = false;
-        console.debug("Stopped");
-    }
+    
 
     public async loop(): Promise<void> {
         this.numTests++;
         
-
-        this.lights = [];
         this.renderer = ThreeTest.createRenderer(this.content);
-        this.scene = ThreeTest.createScene();
+        this.scene = new THREE.Scene();
 
         this.lights = ThreeTest.getLights();
         for (let light of this.lights) {
@@ -58,13 +45,15 @@
         //otherBoxes.rotateZ(Math.PI);
         //this.scene.add(otherBoxes);
         this.textures = await ThreeTest.getTextures(this.textureUrls);
-        
+        this.boxCircle = ThreeTest.getBoxCircle(this.textures, 25, 5);
+        this.scene.add(this.boxCircle);
 
         let ground = await ThreeTest.getGround();
         this.scene.add(ground);
 
         this.camera = new THREE.PerspectiveCamera(75, 1, 0.01, 1000);
         this.camera.position.set(0, 2, 10);
+        console.debug(this.scene.toJSON());
         this.startAnimate();
     }
     private static createRenderer(parent: HTMLElement) {
@@ -80,12 +69,9 @@
         parent.appendChild(result.domElement);
         return result;
     }
-    private static createScene(): THREE.Scene {
-        return new THREE.Scene();
-    }
     private static getLights(): THREE.SpotLight[] {
         let result = [];
-        let numLights = 45;
+        let numLights = 5;
         for (let i = 0; i < numLights; i++) {
             let iPi = i / numLights * 2 * Math.PI;
             let color = new THREE.Vector3(
@@ -121,6 +107,8 @@
                 radius * Math.sin(iPi),
                 0.5,
                 radius * Math.cos(iPi))
+
+            cube.rotateY(iPi);
             result.add(cube);
         }
         return result;
@@ -179,15 +167,15 @@
     }
 
     private time(currentTime: number): boolean {
-        let lifetime = 20000;
-        if (currentTime > lifetime)
-            return false;
-        this.scene.remove(this.boxCircle);
-        let boxCircle = ThreeTest.getBoxCircle(this.textures,
-            ThreeTest.polate(5, 35, currentTime / lifetime),
-            5);
-        this.boxCircle = boxCircle;
-        this.scene.add(boxCircle);
+        let lifetime = 1000;
+        //if (currentTime > lifetime)
+        //    return false;
+        //this.scene.remove(this.boxCircle);
+        //let boxCircle = ThreeTest.getBoxCircle(this.textures,
+        //    ThreeTest.polate(5, 35, currentTime / lifetime),
+        //    5);
+        //this.boxCircle = boxCircle;
+        //this.scene.add(boxCircle);
 
         let i = 0;
         for (let box of this.boxCircle.children) {
