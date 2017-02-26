@@ -38,10 +38,13 @@
     <Content Include="img\6.jpg" />
     <Content Include="img\7.jpg" />
     <Content Include="index.html" />
+    <Content Include="jsonScene.js" />
+    <Content Include="loadJson.html" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
+    <TypeScriptCompile Include="JsonLoad.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="tsconfig.json" />

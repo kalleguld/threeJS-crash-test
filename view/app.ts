@@ -56,7 +56,7 @@
         console.debug(this.scene.toJSON());
         this.startAnimate();
     }
-    private static createRenderer(parent: HTMLElement) {
+    public static createRenderer(parent: HTMLElement) {
         let result = new THREE.WebGLRenderer({
             antialias: true,
         });
