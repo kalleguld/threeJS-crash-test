@@ -6,6 +6,8 @@
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer = null;
     lights: THREE.SpotLight[] = [];
+    boxCircle: THREE.Group;
+    texture: THREE.Texture;
 
     constructor(elem: HTMLElement) {
         this.content = elem;
@@ -34,18 +36,21 @@
         for (let light of this.lights) {
             this.scene.add(light);
         }
+        //this.scene.add(new THREE.AmbientLight(0xffffff, 2));
 
-        let texture = await ThreeTest.getTexture("img/212.jpg");
-        this.scene.add(ThreeTest.getBoxes(texture, 200));
-        let otherBoxes = ThreeTest.getBoxes(texture, 200);
-        otherBoxes.rotateZ(Math.PI);
-        this.scene.add(otherBoxes);
+        this.texture = await ThreeTest.getTexture("img/256.jpg");
+        //this.scene.add(ThreeTest.getBoxSpiral(texture, 200));
+        //let otherBoxes = ThreeTest.getBoxSpiral(texture, 200);
+        //otherBoxes.rotateZ(Math.PI);
+        //this.scene.add(otherBoxes);
 
-        //let ground = await ThreeTest.getGround();
-        //this.scene.add(ground);
+        
+
+        let ground = await ThreeTest.getGround();
+        this.scene.add(ground);
 
         this.camera = new THREE.PerspectiveCamera(75, 1, 0.01, 1000);
-        this.camera.position.set(0, 0, -7.5);
+        this.camera.position.set(0, 2, 10);
         this.startAnimate();
     }
     private static createRenderer(parent: HTMLElement) {
@@ -66,7 +71,7 @@
     }
     private static getLights(): THREE.SpotLight[] {
         let result = [];
-        let numLights = 12;
+        let numLights = 45;
         for (let i = 0; i < numLights; i++) {
             let iPi = i / numLights * 2 * Math.PI;
             let color = new THREE.Vector3(
@@ -76,19 +81,43 @@
             let light = new THREE.SpotLight(ThreeTest.getHexColor(color), 6 / numLights, 25);
             //let light = new THREE.SpotLight(0xffffff, 2, 25);
             light.position.set(4 * Math.sin(iPi), 7 * Math.cos(iPi), 0);
+            light.castShadow = true;
+            light.shadow.mapSize.width = 1024;
+            light.shadow.mapSize.height = 1024;
             result.push(light);
         }
 
         return result;
     }
-    private static getBoxes(texture: THREE.Texture, numBoxes: number): THREE.Group {
+    private static getBoxCircle(textures: THREE.Texture[],
+        numBoxes: number,
+        radius: number
+    ): THREE.Group {
         let result = new THREE.Group();
         for (let i = 0; i < numBoxes; i++) {
-            result.add(ThreeTest.getBox(i, texture));
+            let geo = new THREE.BoxGeometry(1, 1, 1);
+            let mat = new THREE.MeshPhongMaterial({
+                map: textures[i % textures.length]
+            });
+            let cube = new THREE.Mesh(geo, mat);
+            cube.castShadow = true;
+            let iPi = i / numBoxes * Math.PI * 2;
+            cube.position.set(
+                radius * Math.sin(iPi),
+                0.5,
+                radius * Math.cos(iPi))
+            result.add(cube);
         }
         return result;
     }
-    private static getBox(boxNum: number, texture: THREE.Texture): THREE.Mesh {
+    private static getBoxSpiral(texture: THREE.Texture, numBoxes: number): THREE.Group {
+        let result = new THREE.Group();
+        for (let i = 0; i < numBoxes; i++) {
+            result.add(ThreeTest.getSingleSpiralBox(i, texture));
+        }
+        return result;
+    }
+    private static getSingleSpiralBox(boxNum: number, texture: THREE.Texture): THREE.Mesh {
         let geo = new THREE.BoxGeometry(1, 1, 1);
         let tex = texture.clone();
         tex.wrapS = tex.wrapT = THREE.MirroredRepeatWrapping;
@@ -103,17 +132,18 @@
         return cube;
     }
     private static async getGround(): Promise<THREE.Object3D> {
-        let geo = new THREE.PlaneGeometry(5, 200, 5, 50);
+        let geo = new THREE.PlaneGeometry(50, 50);
         let tex = await ThreeTest.getTexture("img/212.jpg");
-        tex.repeat.set(5, 200);
+        tex.repeat.set(50, 50);
         tex.wrapS = tex.wrapT = THREE.MirroredRepeatWrapping;
         let mat = new THREE.MeshPhongMaterial({
             map: tex,
         });
         let mesh = new THREE.Mesh(geo, mat);
         mesh.receiveShadow = true;
-        mesh.position.set(0, -6, 25);
+        
         mesh.rotateX(Math.PI / -2);
+        mesh.position.y = -0.5;
         return mesh;
     }
 
@@ -134,20 +164,44 @@
     }
 
     private time(currentTime: number): boolean {
-        let endTime = 10000;
-        if (currentTime > endTime) {
+        let lifetime = 20000;
+        if (currentTime > lifetime)
             return false;
+        this.scene.remove(this.boxCircle);
+        let boxCircle = ThreeTest.getBoxCircle([this.texture],
+            ThreeTest.polate(5, 35, currentTime / lifetime),
+            5);
+        this.boxCircle = boxCircle;
+        this.scene.add(boxCircle);
+
+        let i = 0;
+        for (let box of this.boxCircle.children) {
+            box.position.y = Math.abs(Math.sin(i/4 + (currentTime / 200)));
+            i++;
         }
-        let cameraZStart = 250;
-        let cameraEnd = 0;
-        let cameraPos = ThreeTest.polate(cameraZStart, cameraEnd, currentTime / endTime);
-        this.camera.position.z = cameraPos;
-        for (let light of this.lights) {
-            light.position.z = cameraPos;
-        }
+
+        //let iPi = (currentTime / 10000);
+        //this.camera.position.x = 10 * Math.sin(iPi);
+        //this.camera.position.z = 10 * Math.cos(iPi);
 
         return true;
     }
+
+    //private time(currentTime: number): boolean {
+    //    let endTime = 10000;
+    //    if (currentTime > endTime) {
+    //        return false;
+    //    }
+    //    let cameraZStart = 250;
+    //    let cameraEnd = 0;
+    //    let cameraPos = ThreeTest.polate(cameraZStart, cameraEnd, currentTime / endTime);
+    //    this.camera.position.z = cameraPos;
+    //    for (let light of this.lights) {
+    //        light.position.z = cameraPos;
+    //    }
+
+    //    return true;
+    //}
 
     private static polate(start: number, stop: number, normalizedPos: number): number{
         return (start * (1-normalizedPos)) + (stop * normalizedPos);
