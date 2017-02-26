@@ -12,6 +12,19 @@ class ThreeTest {
         this.numTests = 0;
         this.renderer = null;
         this.lights = [];
+        this.textureUrls = ["img/1.jpg",
+            "img/2.jpg",
+            "img/3.jpg",
+            "img/4.jpg",
+            "img/5.jpg",
+            "img/6.jpg",
+            "img/7.jpg",
+            "img/1.png",
+            "img/2.png",
+            "img/3.png",
+            "img/4.png",
+            "img/5.png",
+        ];
         this.content = elem;
     }
     start() {
@@ -40,6 +53,7 @@ class ThreeTest {
             //let otherBoxes = ThreeTest.getBoxSpiral(texture, 200);
             //otherBoxes.rotateZ(Math.PI);
             //this.scene.add(otherBoxes);
+            this.textures = yield ThreeTest.getTextures(this.textureUrls);
             let ground = yield ThreeTest.getGround();
             this.scene.add(ground);
             this.camera = new THREE.PerspectiveCamera(75, 1, 0.01, 1000);
@@ -148,7 +162,7 @@ class ThreeTest {
         if (currentTime > lifetime)
             return false;
         this.scene.remove(this.boxCircle);
-        let boxCircle = ThreeTest.getBoxCircle([this.texture], ThreeTest.polate(5, 35, currentTime / lifetime), 5);
+        let boxCircle = ThreeTest.getBoxCircle(this.textures, ThreeTest.polate(5, 35, currentTime / lifetime), 5);
         this.boxCircle = boxCircle;
         this.scene.add(boxCircle);
         let i = 0;
@@ -183,6 +197,13 @@ class ThreeTest {
             let loader = new THREE.TextureLoader();
             loader.load(url, resolve);
         });
+    }
+    static getTextures(urls) {
+        let promises = [];
+        for (let url of urls) {
+            promises.push(ThreeTest.getTexture(url));
+        }
+        return Promise.all(promises);
     }
     static getHexColor(normalizedRgb) {
         let r = normalizedRgb.x * 255;

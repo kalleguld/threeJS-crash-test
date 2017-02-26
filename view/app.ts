@@ -8,6 +8,20 @@
     lights: THREE.SpotLight[] = [];
     boxCircle: THREE.Group;
     texture: THREE.Texture;
+    textureUrls = ["img/1.jpg",
+        "img/2.jpg",
+        "img/3.jpg",
+        "img/4.jpg",
+        "img/5.jpg",
+        "img/6.jpg",
+        "img/7.jpg",
+        "img/1.png",
+        "img/2.png",
+        "img/3.png",
+        "img/4.png",
+        "img/5.png",
+    ]
+    textures: THREE.Texture[];
 
     constructor(elem: HTMLElement) {
         this.content = elem;
@@ -43,7 +57,7 @@
         //let otherBoxes = ThreeTest.getBoxSpiral(texture, 200);
         //otherBoxes.rotateZ(Math.PI);
         //this.scene.add(otherBoxes);
-
+        this.textures = await ThreeTest.getTextures(this.textureUrls);
         
 
         let ground = await ThreeTest.getGround();
@@ -89,6 +103,7 @@
 
         return result;
     }
+
     private static getBoxCircle(textures: THREE.Texture[],
         numBoxes: number,
         radius: number
@@ -168,7 +183,7 @@
         if (currentTime > lifetime)
             return false;
         this.scene.remove(this.boxCircle);
-        let boxCircle = ThreeTest.getBoxCircle([this.texture],
+        let boxCircle = ThreeTest.getBoxCircle(this.textures,
             ThreeTest.polate(5, 35, currentTime / lifetime),
             5);
         this.boxCircle = boxCircle;
@@ -211,6 +226,13 @@
             let loader = new THREE.TextureLoader();
             loader.load(url, resolve);
         });
+    }
+    private static getTextures(urls: string[]): Promise<THREE.Texture[]> {
+        let promises = [];
+        for (let url of urls) {
+            promises.push(ThreeTest.getTexture(url));
+        }
+        return Promise.all(promises);
     }
     private static getHexColor(normalizedRgb: THREE.Vector3): number {
         let r = normalizedRgb.x * 255;
